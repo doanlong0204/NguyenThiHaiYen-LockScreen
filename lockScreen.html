@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Lock Screen - Premium Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif; 
+        }
+
+        body {
+            background-color: #FFE1E9;
+            background-image: radial-gradient(#FFB6C1 15%, transparent 15%);
+            background-size: 20px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CONTAINER NỀN CHỮ HY LỘN XỘN */
+        .bg-hy-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .hy-text {
+            position: absolute;
+            color: #FF5376; 
+            font-weight: 900; 
+            white-space: nowrap;
+            will-change: transform;
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 3px rgba(255, 255, 255, 0.6);
+        }
+
+        /* HIỆU ỨNG TIM & SAO BAY LƠ LỬNG Ở NỀN */
+        .floating-decor {
+            position: fixed;
+            bottom: -50px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            animation: floatUp 6s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Nút bức thư ở góc trên bên phải màn hình */
+        .letter-corner-btn {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background: white;
+            border: none;
+            font-size: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.2);
+            transition: all 0.3s ease;
+            z-index: 5;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .letter-corner-btn:hover {
+            transform: scale(1.15) rotate(15deg);
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* ĐÃ THU NHỎ: Đưa chiều rộng tổng thể về lại kích thước 710px gọn gàng */
+        .card-glow-wrapper {
+            position: relative;
+            width: 710px;
+            max-width: 95%;
+            border-radius: 28px;
+            overflow: hidden;
+            padding: 4px; 
+            box-shadow: 0 20px 50px rgba(255, 20, 147, 0.4);
+            z-index: 2;
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-glow-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(#FF1493, #FF69B4, #FFE1E9, #FF69B4, #FF1493);
+            animation: spinGlow 4s linear infinite;
+            z-index: 1;
+        }
+
+        .card-glow-wrapper.fade-out {
+            transform: scale(0.8);
+            opacity: 0;
+            filter: blur(10px);
+        }
+
+        @keyframes spinGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* CONTAINER CHÍNH HIỆU ỨNG KÍNH MỜ */
+        .main-card {
+            background: rgba(255, 240, 243, 0.92); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            padding: 22px;
+            gap: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        /* ĐÃ THU NHỎ ẢNH: Giới hạn chiều rộng ảnh tối đa 245px để nhường chỗ cho bàn phím */
+        .photo-section {
+            flex: 1;
+            max-width: 245px;
+            background: #FFFFFF;
+            padding: 10px 10px 18px 10px;
+            box-shadow: 0 10px 25px rgba(209, 0, 104, 0.15), inset 0 0 4px rgba(0,0,0,0.05);
+            transform: rotate(-3deg); 
+            margin: 5px;
+            height: fit-content;
+            transition: transform 0.5s ease;
+        }
+
+        .photo-section:hover {
+            transform: rotate(0deg) scale(1.03);
+        }
+
+        /* Giữ khung ảnh co giãn tự nhiên theo tỷ lệ ảnh gốc */
+        .polaroid-frame {
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid #EAEAEA;
+        }
+
+        .polaroid-frame img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain; 
+        }
+
+        .polaroid-caption {
+            font-family: 'Pacifico', cursive;
+            color: #D10068;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        /* PHẦN MẬT MÃ: Tăng tỷ lệ flex để hiển thị rộng rãi, cân đối */
+        .lock-section {
+            flex: 1.3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lock-caption {
+            font-size: 16px;
+            font-weight: 700;
+            color: #D10068;
+            text-align: center;
+            margin-bottom: 18px;
+            line-height: 1.4;
+            padding: 0 10px;
+        }
+
+        /* Các chấm hiển thị độ dài mật khẩu */
+        .dots-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #FF1493;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .dot.active {
+            background-color: #FF1493;
+            transform: scale(1.15);
+            box-shadow: 0 0 8px rgba(255, 20, 147, 0.6);
+        }
+
+        /* Bàn phím số */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 230px;
+        }
+
+        .key {
+            background: #FFFDF9;
+            border: none;
+            font-size: 20px;
+            font-weight: 700;
+            color: #D10068;
+            height: 52px;
+            width: 52px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            user-select: none;
+            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4), 
+                        inset 0 -3px 0 rgba(209, 0, 104, 0.15);
+        }
+
+        .key:active {
+            background-color: #FFE4E1;
+            transform: scale(0.92) translateY(2px);
+            box-shadow: 0 2px 5px rgba(255, 182, 193, 0.2);
+        }
+
+        .key.blank {
+            visibility: hidden;
+            box-shadow: none;
+        }
+
+        .key.delete {
+            font-size: 16px;
+        }
+
+        /* Responsive di động */
+        @media (max-width: 768px) {
+            .main-card {
+                flex-direction: column;
+                padding: 20px;
+                gap: 20px;
+            }
+            .photo-section {
+                margin: 5px;
+                transform: rotate(0deg);
+                width: 100%;
+                max-width: 240px;
+            }
+        }
+
+        /* Pop-up (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(223, 142, 161, 0.3);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Hộp thư giới thiệu */
+        .letter-box {
+            background: #FFFDF9;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(209, 0, 104, 0.15);
+            width: 420px;
+            max-width: 90%;
+            position: relative;
+            border-left: 6px solid #FF1493;
+        }
+
+        .letter-box h3, .scratch-card-box h3 {
+            font-family: 'Pacifico', cursive;
+            color: #D10068;
+            margin-bottom: 15px;
+            font-size: 24px;
+            border-bottom: 1px dashed #FFB6C1;
+            padding-bottom: 8px;
+        }
+
+        .letter-text {
+            font-size: 15px;
+            color: #444;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: left;
+            white-space: pre-line;
+            font-weight: 500;
+        }
+
+        /* Vé cào */
+        .scratch-card-box {
+            background: white;
+            padding: 25px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            width: 320px;
+        }
+
+        .scratch-card-box p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .scratch-container {
+            position: relative;
+            width: 250px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background: #FFE4E1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.05);
+        }
+
+        .secret-hint {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            color: #FF1493;
+            font-size: 17px;
+            user-select: none;
+        }
+
+        #scratch-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            cursor: pointer;
+            touch-action: none;
+            max-width: 100%; 
+            transition: opacity 0.4s ease;
+        }
+
+        .close-btn {
+            background: #FF1493;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(255, 20, 147, 0.3);
+        }
+
+        .close-btn:hover {
+            background: #D10068;
+            transform: translateY(-2px);
+        }
+
+        /* MÀN HÌNH CHUYỂN TRANG MƯỢT MÀ */
+        .page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #FFE1E9;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+        }
+
+        .page-transition-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .transition-text {
+            color: #D10068;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+        }
+
+        /* THANH LOAD CUTE CÓ HEO CHẠY BỘ */
+        .progress-container {
+            width: 280px;
+            height: 16px; 
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(255, 182, 193, 0.4);
+            border: 2px solid #FFF;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #FF69B4, #FF1493);
+            border-radius: 20px;
+            transition: width 0.1s linear;
+        }
+
+        .progress-pig {
+            position: absolute;
+            left: 0%;
+            top: 50%;
+            transform: translate(-50%, -55%);
+            font-size: 24px;
+            transition: left 0.1s linear;
+            will-change: left;
+            user-select: none;
+            pointer-events: none;
+            animation: pigWobble 0.2s infinite alternate ease-in-out;
+        }
+
+        .progress-percentage {
+            color: #FF1493;
+            font-size: 15px;
+            font-weight: bold;
+            font-family: monospace, sans-serif;
+        }
+
+        @keyframes pigWobble {
+            0% { transform: translate(-50%, -55%) rotate(-5deg); }
+            100% { transform: translate(-50%, -50%) rotate(5deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-hy-container" id="bgHyContainer"></div>
+
+    <button class="letter-corner-btn" id="letterBtn">💌</button>
+
+    <div class="card-glow-wrapper" id="lockCardWrapper">
+        <div class="main-card" id="lockCard">
+            <div class="photo-section">
+                <div class="polaroid-frame">
+                    <img src="https://raw.githubusercontent.com/doanlong0204/snhy220729/refs/heads/main/0c51460198ef19b140fe.jpg" alt="Girl Photo">
+                </div>
+                <div class="polaroid-caption">Hải Yến 2026 🌸</div>
+            </div>
+
+            <div class="lock-section">
+                <div class="lock-caption">Không gian 3D đang bị khóa 🔒<br>Nhập mật mã để mở !</div>
+                
+                <div class="dots-container">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+
+                <div class="keypad" id="keypad">
+                    <button class="key" data-value="1">1</button>
+                    <button class="key" data-value="2">2</button>
+                    <button class="key" data-value="3">3</button>
+                    <button class="key" data-value="4">4</button>
+                    <button class="key" data-value="5">5</button>
+                    <button class="key" data-value="6">6</button>
+                    <button class="key" data-value="7">7</button>
+                    <button class="key" data-value="8">8</button>
+                    <button class="key" data-value="9">9</button>
+                    <button class="key blank"></button>
+                    <button class="key" data-value="0">0</button>
+                    <button class="key delete" data-value="del">⌫</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-transition-overlay" id="pageTransition">
+        <div class="transition-text">Đang kết nối đến Vũ trụ Hải Yến... ✨</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-pig" id="progressPig">🐷</div>
+        </div>
+        <div class="progress-percentage" id="progressPercentage">0%</div>
+    </div>
+
+    <div class="modal-overlay" id="letterModal">
+        <div class="letter-box">
+            <h3>Gửi Hải Yến! 📝</h3>
+            <div class="letter-text">Xin chàoooooooooooooo! 
+
+            Hôm nay là một ngày bth chả có méo j đặc biệt đối vs t:)), nma đb đối vs m (hết!) 💩 .
+
+            Để mở khóa, cần nhập đúng mã PIN gồm 4 chữ số (Gợi ý: nhập sai 3 lần là có gợi ý 💀). 
+
+            Chúc Hải Yến có một ngày sn thật vv nhé! ✨</div>
+            <button class="close-btn" data-close="letterModal">Đóng thư</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="hintModal">
+        <div class="scratch-card-box">
+            <h3>Vé Cào Mật Khẩu 🎫</h3>
+            <p>Óc tuất. Cào lớp bạc bên dưới để lấy mật khẩu!</p>
+            
+            <div class="scratch-container">
+                <div class="secret-hint" id="hintText">Mật khẩu là: 2207</div>
+                <canvas id="scratch-canvas" width="250" height="80"></canvas>
+            </div>
+
+            <button class="close-btn" data-close="hintModal">Quay lại nhập mã</button>
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_PIN = "2207"; 
+        const TARGET_URL = "https://doanlong0204.github.io/vutru3d-happybirthday-haiyen/";
+        
+        let currentInput = "";
+        let wrongAttempts = 0;
+
+        const dots = document.querySelectorAll('.dot');
+        const cardWrapper = document.getElementById('lockCardWrapper');
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let isCanvasInitialized = false;
+
+        function generateHYBackground() {
+            const container = document.getElementById('bgHyContainer');
+            const rows = 8;
+            const cols = 12;
+            const cells = [];
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    cells.push({ r, c });
+                }
+            }
+
+            cells.sort(() => Math.random() - 0.5);
+            const maxWords = Math.min(85, cells.length);
+
+            for (let i = 0; i < maxWords; i++) {
+                const cell = cells[i];
+                const baseLeft = (cell.c / cols) * 100;
+                const baseTop = (cell.r / rows) * 100;
+
+                const jitterLeft = (Math.random() * (100 / cols)) * 0.6;
+                const jitterTop = (Math.random() * (100 / rows)) * 0.6;
+
+                const randomLeft = baseLeft + jitterLeft + 2;
+                const randomTop = baseTop + jitterTop + 2;
+                const randomSize = Math.floor(Math.random() * 24) + 20; 
+                const randomRotation = Math.floor(Math.random() * 80) - 40; 
+                const randomOpacity = (Math.random() * 0.20) + 0.35; 
+
+                const span = document.createElement('span');
+                span.classList.add('hy-text');
+                span.innerText = 'HY';
+                span.style.top = `${randomTop}%`;
+                span.style.left = `${randomLeft}%`;
+                span.style.fontSize = `${randomSize}px`;
+                span.style.transform = `rotate(${randomRotation}deg)`;
+                span.style.opacity = randomOpacity;
+
+                container.appendChild(span);
+            }
+        }
+
+        function createFloatingDecorations() {
+            const container = document.body;
+            const icons = ['✨', '🌸', '🎈', '️🎉', '💖'];
+            for (let i = 0; i < 15; i++) {
+                const item = document.createElement('div');
+                item.className = 'floating-decor';
+                item.innerText = icons[Math.floor(Math.random() * icons.length)];
+                item.style.left = Math.random() * 100 + 'vw';
+                item.style.animationDelay = Math.random() * 6 + 's';
+                item.style.fontSize = Math.floor(Math.random() * 12) + 16 + 'px';
+                item.style.animationDuration = Math.random() * 3 + 5 + 's';
+                container.appendChild(item);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            generateHYBackground();
+            createFloatingDecorations();
+
+            document.getElementById('letterBtn').addEventListener('click', () => openModal('letterModal'));
+
+            document.querySelectorAll('[data-close]').forEach(btn => {
+                btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close')));
+            });
+
+            document.getElementById('keypad').addEventListener('click', (e) => {
+                const btn = e.target.closest('.key');
+                if (!btn || btn.classList.contains('blank')) return;
+
+                const value = btn.getAttribute('data-value');
+                if (value === 'del') {
+                    pressDelete();
+                } else if (value) {
+                    pressKey(value);
+                }
+            });
+        });
+
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index < currentInput.length);
+            });
+        }
+
+        function pressKey(num) {
+            if (currentInput.length >= 4) return;
+            currentInput += num;
+            updateDots();
+
+            if (currentInput.length === 4) {
+                setTimeout(checkPin, 200);
+            }
+        }
+
+        function pressDelete() {
+            if (currentInput.length > 0) {
+                currentInput = currentInput.slice(0, -1);
+                updateDots();
+            }
+        }
+
+        function startLoadingAnimation(callback) {
+            const progressBar = document.getElementById('progressBar');
+            const progressPig = document.getElementById('progressPig');
+            const progressPercentage = document.getElementById('progressPercentage');
+            let currentPercent = 0;
+            
+            const totalDuration = 1800; 
+            const intervalTime = 20; 
+            const totalSteps = totalDuration / intervalTime;
+            const increment = 100 / totalSteps;
+
+            const loadingInterval = setInterval(() => {
+                currentPercent += increment;
+                if (currentPercent >= 100) {
+                    currentPercent = 100;
+                    clearInterval(loadingInterval);
+                    setTimeout(callback, 400); 
+                }
+                
+                const percentInt = Math.floor(currentPercent);
+                progressBar.style.width = percentInt + '%';
+                progressPig.style.left = percentInt + '%'; 
+                progressPercentage.innerText = percentInt + '%';
+            }, intervalTime);
+        }
+
+        function checkPin() {
+            if (currentInput === CORRECT_PIN) {
+                cardWrapper.classList.add('fade-out');
+                
+                const transitionOverlay = document.getElementById('pageTransition');
+                setTimeout(() => {
+                    transitionOverlay.classList.add('active');
+                    startLoadingAnimation(() => {
+                        window.location.href = TARGET_URL;
+                    });
+                }, 300);
+
+            } else {
+                wrongAttempts++;
+                currentInput = "";
+                updateDots();
+                
+                cardWrapper.classList.add('shake');
+                setTimeout(() => cardWrapper.classList.remove('shake'), 300);
+
+                if (wrongAttempts >= 3) {
+                    setTimeout(() => openModal('hintModal'), 400);
+                }
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+            if (id === 'hintModal' && !isCanvasInitialized) {
+                initScratchCard();
+                isCanvasInitialized = true;
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function initScratchCard() {
+            ctx.fillStyle = '#FFB6C1';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            for (let i = 0; i < 150; i++) {
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let size = Math.random() * 2 + 1;
+                ctx.fillRect(x, y, size, size);
+            }
+
+            canvas.addEventListener('mousedown', startScratching);
+            canvas.addEventListener('mousemove', scratch);
+            canvas.addEventListener('mouseup', stopScratching);
+
+            canvas.addEventListener('touchstart', startScratching);
+            canvas.addEventListener('touchmove', scratch);
+            canvas.addEventListener('touchend', stopScratching);
+        }
+
+        function startScratching(e) {
+            isDrawing = true;
+            scratch(e);
+        }
+
+        function scratch(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            const x = (clientX - rect.left) * scaleX;
+            const y = (clientY - rect.top) * scaleY;
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 16, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function stopScratching() {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            let transparentPixels = 0;
+
+            for (let i = 3; i < pixels.length; i += 4) {
+                if (pixels[i] === 0) transparentPixels++;
+            }
+
+            const scratchPercentage = (transparentPixels / (pixels.length / 4)) * 100;
+
+            if (scratchPercentage > 45) {
+                canvas.style.opacity = '0';
+                setTimeout(() => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }, 400);
+            }
+        }
+    </script>
+</body>
+</html>
